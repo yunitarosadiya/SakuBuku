@@ -163,6 +163,32 @@ class _AddTransactionScreenState extends ConsumerState<AddTransactionScreen> {
     }
   }
 
+  Future<void> _editUkuranNota() async {
+    if (_receiptFile == null) return;
+
+    final croppedFile = await ImageCropper().cropImage(
+      sourcePath: _receiptFile!.path,
+      uiSettings: [
+        AndroidUiSettings(
+          toolbarTitle: 'Edit Ukuran Nota',
+          toolbarColor: AppColors.primary, // Memakai warna Pink dari temamu
+          toolbarWidgetColor: Colors.white,
+          initAspectRatio: CropAspectRatioPreset.original,
+          lockAspectRatio: false,
+          hideBottomControls: false,
+        ),
+      ],
+    );
+
+    if (croppedFile != null) {
+      setState(() {
+        _receiptFile = File(croppedFile.path);
+        // Memperbarui ukuran file setelah dipotong
+        _receiptSizeBytes = _receiptFile!.lengthSync();
+      });
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final categories = _type == 'EXPENSE'
@@ -477,21 +503,59 @@ class _AddTransactionScreenState extends ConsumerState<AddTransactionScreen> {
             ),
             child: Row(
               children: [
-                ClipRRect(
-                  borderRadius: BorderRadius.circular(10),
-                  child: kIsWeb
-                      ? Container(
-                          width: 60,
-                          height: 60,
-                          color: AppColors.primaryLight.withValues(alpha: 0.1),
-                          child: const Icon(Icons.receipt, size: 30, color: AppColors.primary),
-                        )
-                      : Image.file(
-                          _receiptFile!,
-                          width: 60,
-                          height: 60,
-                          fit: BoxFit.cover,
-                        ),
+                GestureDetector(
+                  onTap: () {
+                    if (kIsWeb) return; // Mencegah error pop-up jika dijalankan di Web
+                    showDialog(
+                      context: context,
+                      builder: (BuildContext context) {
+                        return Dialog(
+                          backgroundColor: Colors.transparent,
+                          insetPadding: EdgeInsets.zero,
+                          child: Stack(
+                            alignment: Alignment.center,
+                            children: [
+                              InteractiveViewer(
+                                panEnabled: true,
+                                minScale: 1.0,
+                                maxScale: 4.0, // Bisa di-zoom hingga 4x
+                                child: Image.file(
+                                  _receiptFile!,
+                                  fit: BoxFit.contain,
+                                  width: double.infinity,
+                                  height: double.infinity,
+                                ),
+                              ),
+                              Positioned(
+                                top: 40,
+                                right: 20,
+                                child: IconButton(
+                                  icon: const Icon(Icons.close, color: Colors.white, size: 30),
+                                  onPressed: () => Navigator.of(context).pop(),
+                                ),
+                              ),
+                            ],
+                          ),
+                        );
+                      },
+                    );
+                  },
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(10),
+                    child: kIsWeb
+                        ? Container(
+                            width: 60,
+                            height: 60,
+                            color: AppColors.primaryLight.withValues(alpha: 0.1),
+                            child: const Icon(Icons.receipt, size: 30, color: AppColors.primary),
+                          )
+                        : Image.file(
+                            _receiptFile!,
+                            width: 60,
+                            height: 60,
+                            fit: BoxFit.cover,
+                          ),
+                  ),
                 ),
                 const SizedBox(width: 14),
                 Expanded(
@@ -510,14 +574,25 @@ class _AddTransactionScreenState extends ConsumerState<AddTransactionScreen> {
                     ],
                   ),
                 ),
-                IconButton(
-                  icon: const Icon(Icons.close, color: AppColors.expense),
-                  onPressed: () {
-                    setState(() {
-                      _receiptFile = null;
-                      _receiptSizeBytes = null;
-                    });
-                  },
+                // 2. Menambahkan tombol Crop di sebelah tombol Silang
+                Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    IconButton(
+                      icon: const Icon(Icons.crop, color: AppColors.primary),
+                      onPressed: _editUkuranNota, // Memanggil fungsi potong gambar
+                      tooltip: 'Edit Ukuran',
+                    ),
+                    IconButton(
+                      icon: const Icon(Icons.close, color: AppColors.expense),
+                      onPressed: () {
+                        setState(() {
+                          _receiptFile = null;
+                          _receiptSizeBytes = null;
+                        });
+                      },
+                    ),
+                  ],
                 ),
               ],
             ),

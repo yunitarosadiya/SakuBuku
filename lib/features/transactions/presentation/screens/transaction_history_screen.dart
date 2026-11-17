@@ -7,6 +7,7 @@ import '../../../../core/utils/date_formatter.dart';
 import '../../data/models/transaction_model.dart';
 import '../providers/transaction_provider.dart';
 import 'add_transaction_screen.dart';
+import 'dart:io';
 
 class TransactionHistoryScreen extends ConsumerWidget {
   const TransactionHistoryScreen({super.key});
@@ -126,40 +127,43 @@ class TransactionHistoryScreen extends ConsumerWidget {
   Widget _buildTypeFilterChips(WidgetRef ref, TransactionFilterState filter) {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 20),
-      child: Row(
-        children: [
-          ChoiceChip(
-            label: const Text('Semua'),
-            selected: filter.typeFilter == null,
-            onSelected: (_) {
-              ref.read(transactionFilterProvider.notifier).updateFilter(
-                    filter.copyWith(clearType: true),
-                  );
-            },
-          ),
-          const SizedBox(width: 8),
-          ChoiceChip(
-            label: const Text('Pengeluaran'),
-            selected: filter.typeFilter == 'EXPENSE',
-            selectedColor: AppColors.expenseLight,
-            onSelected: (_) {
-              ref.read(transactionFilterProvider.notifier).updateFilter(
-                    filter.copyWith(typeFilter: 'EXPENSE'),
-                  );
-            },
-          ),
-          const SizedBox(width: 8),
-          ChoiceChip(
-            label: const Text('Pemasukan'),
-            selected: filter.typeFilter == 'INCOME',
-            selectedColor: AppColors.incomeLight,
-            onSelected: (_) {
-              ref.read(transactionFilterProvider.notifier).updateFilter(
-                    filter.copyWith(typeFilter: 'INCOME'),
-                  );
-            },
-          ),
-        ],
+      child: SingleChildScrollView( // <-- Tambahkan ini agar bisa di-scroll horizontal
+        scrollDirection: Axis.horizontal,
+        child: Row(
+          children: [
+            ChoiceChip(
+              label: const Text('Semua'),
+              selected: filter.typeFilter == null,
+              onSelected: (_) {
+                ref.read(transactionFilterProvider.notifier).updateFilter(
+                      filter.copyWith(clearType: true),
+                    );
+              },
+            ),
+            const SizedBox(width: 8),
+            ChoiceChip(
+              label: const Text('Pengeluaran'),
+              selected: filter.typeFilter == 'EXPENSE',
+              selectedColor: AppColors.expenseLight,
+              onSelected: (_) {
+                ref.read(transactionFilterProvider.notifier).updateFilter(
+                      filter.copyWith(typeFilter: 'EXPENSE'),
+                    );
+              },
+            ),
+            const SizedBox(width: 8),
+            ChoiceChip(
+              label: const Text('Pemasukan'),
+              selected: filter.typeFilter == 'INCOME',
+              selectedColor: AppColors.incomeLight,
+              onSelected: (_) {
+                ref.read(transactionFilterProvider.notifier).updateFilter(
+                      filter.copyWith(typeFilter: 'INCOME'),
+                    );
+              },
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -201,10 +205,15 @@ class TransactionHistoryScreen extends ConsumerWidget {
                 children: [
                   Row(
                     children: [
-                      Text(
-                        item.category,
-                        style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 15),
+                      Expanded(
+                        child: Text(
+                          item.category,
+                          style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 15),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
                       ),
+                      
                       if (item.hasReceipt) ...[
                         const SizedBox(width: 6),
                         const Icon(Icons.attach_file, size: 14, color: AppColors.primary),
