@@ -384,11 +384,16 @@ class DashboardScreen extends ConsumerWidget {
               children: [
                 Row(
                   children: [
-                    Text(
-                      item.category,
-                      style: const TextStyle(
-                        fontWeight: FontWeight.w700,
-                        fontSize: 15,
+                    // Dibungkus Flexible agar teks kategori otomatis jadi "..." jika kepanjangan
+                    Flexible(
+                      child: Text(
+                        item.category,
+                        style: const TextStyle(
+                          fontWeight: FontWeight.w700,
+                          fontSize: 15,
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
                       ),
                     ),
                     if (item.hasReceipt) ...[
